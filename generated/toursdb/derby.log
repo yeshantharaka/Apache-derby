@@ -1,0 +1,16 @@
+----------------------------------------------------------------
+Mon Jul 03 23:00:52 IST 2017:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.13.1.1 - (???): instance a816c00e-015d-0981-3f6f-0000460d68ab 
+on database directory F:\academic\semester 6\software engineering\db-derby-10.13.1.1-src\generated\toursdb\toursdb with class loader sun.misc.Launcher$AppClassLoader@4e0e2f2a 
+Loaded from file:/F:/academic/semester%206/software%20engineering/db-derby-10.13.1.1-src/classes/
+java.vendor=Oracle Corporation
+java.runtime.version=1.8.0_66-b18
+user.dir=F:\academic\semester 6\software engineering\db-derby-10.13.1.1-src\java\demo\toursdb
+os.name=Windows 10
+os.arch=amd64
+os.version=10.0
+derby.system.home=F:\academic\semester 6\software engineering\db-derby-10.13.1.1-src/generated/toursdb
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Mon Jul 03 23:00:58 IST 2017:
+Shutting down instance a816c00e-015d-0981-3f6f-0000460d68ab on database directory F:\academic\semester 6\software engineering\db-derby-10.13.1.1-src\generated\toursdb\toursdb with class loader sun.misc.Launcher$AppClassLoader@4e0e2f2a 

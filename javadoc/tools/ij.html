@@ -1,0 +1,1294 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>BNF for ij.jj</TITLE>
+</HEAD>
+<BODY>
+<H1 ALIGN=CENTER>BNF for ij.jj</H1>
+<H2 ALIGN=CENTER>NON-TERMINALS</H2>
+<PRE>
+//
+// start of BNF rules
+//
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>ijStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod1">ijStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod2">RollbackStatement</A> | <A HREF="#prod3">AbsoluteStatement</A> | <A HREF="#prod4">AfterLastStatement</A> | <A HREF="#prod5">AutocommitStatement</A> | <A HREF="#prod6">AsyncStatement</A> | <A HREF="#prod7">Bang</A> | <A HREF="#prod8">BeforeFirstStatement</A> | <A HREF="#prod9">CloseStatement</A> | <A HREF="#prod10">CommitStatement</A> | <A HREF="#prod11">ConnectStatement</A> | <A HREF="#prod12">DescTableStatement</A> | <A HREF="#prod13">DisconnectStatement</A> | <A HREF="#prod14">DriverStatement</A> | <A HREF="#prod15">ElapsedTimeStatement</A> | <A HREF="#prod16">ExecuteStatement</A> | <A HREF="#prod17">FirstStatement</A> | <A HREF="#prod18">ExitStatement</A> | <A HREF="#prod19">GetCursorStatement</A> | <A HREF="#prod20">GetCurrentRowNumber</A> | <A HREF="#prod21">HelpStatement</A> | <A HREF="#prod22">HoldForConnectionStatement</A> | <A HREF="#prod23">LastStatement</A> | <A HREF="#prod24">LocalizedDisplay</A> | <A HREF="#prod25">MaximumDisplayWidthStatement</A> | <A HREF="#prod26">NextStatement</A> | <A HREF="#prod27">NoHoldForConnectionStatement</A> | <A HREF="#prod28">PrepareStatement</A> | <A HREF="#prod29">PreviousStatement</A> | <A HREF="#prod30">ProtocolStatement</A> | <A HREF="#prod31">ReadOnlyStatement</A> | <A HREF="#prod32">RelativeStatement</A> | <A HREF="#prod33">RemoveStatement</A> | <A HREF="#prod34">RunStatement</A> | <A HREF="#prod35">SetConnectionStatement</A> | <A HREF="#prod36">ShowStatement</A> | <A HREF="#prod37">WaitForStatement</A> | <A HREF="#prod38">XA_DataSourceStatement</A> | <A HREF="#prod39">XA_ConnectStatement</A> | <A HREF="#prod40">XA_CommitStatement</A> | <A HREF="#prod41">XA_DisconnectStatement</A> | <A HREF="#prod42">XA_GetConnectionStatement</A> | <A HREF="#prod43">XA_EndStatement</A> | <A HREF="#prod44">XA_ForgetStatement</A> | <A HREF="#prod45">XA_PrepareStatement</A> | <A HREF="#prod46">XA_RecoverStatement</A> | <A HREF="#prod47">XA_RollbackStatement</A> | <A HREF="#prod48">XA_StartStatement</A> | <A HREF="#prod49">DataSourceStatement</A> | <A HREF="#prod50">CP_DataSourceStatement</A> | <A HREF="#prod51">CP_ConnectStatement</A> | <A HREF="#prod52">CP_GetConnectionStatement</A> | <A HREF="#prod53">CP_DisconnectStatement</A> )? &lt;EOF&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * ProtocolStatement is PROTOCOL 'JDBC protocol' where
+ * the protocol is used to prefix any connect request that
+ * cannot find a driver.  We will take a stab at loading
+ * a driver as each protocol comes in -- we only know about
+ * two.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>ProtocolStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod30">ProtocolStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;PROTOCOL&gt; &lt;STRING&gt; ( &lt;AS&gt; <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * DriverStatement is DRIVER 'class' where class is the
+ * name of a class that is a JDBC driver. It is loaded
+ * into the DriverManager with a Class.forName call.
+ * <p>
+ * You can load as many drivers as you want, the idea is
+ * to load up the appropriate one(s) for the connect(s)
+ * that you will be issuing.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>DriverStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod14">DriverStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DRIVER&gt; &lt;STRING&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>ConnectStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod11">ConnectStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;CONNECT&gt; ( &lt;TO&gt; ( <A HREF="#prod55">dynamicConnection</A> ) | ( <A HREF="#prod55">dynamicConnection</A> | <A HREF="#prod56">staticConnection</A> ) )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * ConnectStatement is CONNECT 'url' [ PROTOCOL proto ] 
+	[ USER 	String PASSWORD String ] 
+	[ATTRIBUTES attributeName = value [, attributeName = value]* ]
+	[ AS ident ], where url is the
+ * url for the database, i.e. jdbc:protocol:dbname etc.
+ * Attributes are connection attributes to 
+ * <p>
+ * There can only be one connection at a time; if there
+ * is already one, it is put on hold and this one takes its place.
+ * <p>
+ * if a driver can't be found, the current protocol will
+ * be added at the front.
+ * <p>
+ * the as ident part is used for set connection.  If you don't
+ * specify a name, we create one that is CONNECTION# for the #
+ * of open connections that now exists. If the name duplicates,
+ * an error results.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>dynamicConnection</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod55">dynamicConnection</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;STRING&gt; ( &lt;PROTOCOL&gt; <A HREF="#prod54">identifier</A> )? ( &lt;USER&gt; &lt;STRING&gt; )? ( &lt;PASSWORD&gt; &lt;STRING&gt; )? ( &lt;ATTRIBUTES&gt; ( <A HREF="#prod57">attributeList</A> )? )? ( &lt;AS&gt; <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * Handles DESCRIBE table
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>DescTableStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod12">DescTableStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DESCRIBE&gt; ( ( <A HREF="#prod58">caIdentifier</A> ( &lt;PERIOD&gt; <A HREF="#prod58">caIdentifier</A> )? ) | &lt;STRING&gt; )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+  * Handles CONNECT yadda.yadda.foo( stringArg, ... stringArg ) AS connectionName
+  */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>staticConnection</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod56">staticConnection</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod59">staticMethodName</A> <A HREF="#prod60">staticMethodArgs</A> ( &lt;AS&gt; <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * SetConnectionStatement is SET CONNECTION ident
+ * <p>
+ * Moves to the named session, if it exists. If it doesn't
+ * exist, remains on the current session and returns an error.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>SetConnectionStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod35">SetConnectionStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;SET&gt; &lt;CONNECTION&gt; <A HREF="#prod54">identifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * Handles showing current connections for the current environment, and
+ * SHOW TABLES/VIEWS/... commands.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>ShowStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod36">ShowStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;SHOW&gt; ( &lt;CONNECTIONS&gt; | ( &lt;TABLES&gt; | &lt;VIEWS&gt; | &lt;SYNONYMS&gt; | &lt;ALIASES&gt; ) ( &lt;IN&gt; <A HREF="#prod58">caIdentifier</A> )? | &lt;INDEXES&gt; ( ( &lt;IN&gt; <A HREF="#prod58">caIdentifier</A> ) | ( &lt;FROM&gt; <A HREF="#prod58">caIdentifier</A> ( &lt;PERIOD&gt; <A HREF="#prod58">caIdentifier</A> )? ) )? | &lt;PROCEDURES&gt; ( &lt;IN&gt; <A HREF="#prod58">caIdentifier</A> )? | &lt;FUNCTIONS&gt; ( &lt;IN&gt; <A HREF="#prod58">caIdentifier</A> )? | &lt;SCHEMAS&gt; | &lt;ROLES&gt; | &lt;ENABLED_ROLES&gt; | &lt;SETTABLE_ROLES&gt; )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * CommitStatement is simply COMMIT.
+ * It commits the current transation.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>CommitStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod10">CommitStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;COMMIT&gt; ( &lt;WORK&gt; )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * RollbackStatement is simply ROLLBACK.
+ * It undoes the current transation.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>RollbackStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod2">RollbackStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;ROLLBACK&gt; ( &lt;WORK&gt; )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * DisconnectStatement is simply DISCONNECT [ ALL | CURRENT | connectionName ]
+ * it ends the specified connection(s) and
+ * releases its statement resource.
+ * <p>
+ * If ALL is specified, it disconnects all available sessions
+ * in the current environment.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>DisconnectStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod13">DisconnectStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DISCONNECT&gt; ( ( &lt;CURRENT&gt; | &lt;ALL&gt; | <A HREF="#prod54">identifier</A> ) )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>ExitStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod18">ExitStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;EXIT&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;QUIT&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>PrepareStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod28">PrepareStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;PREPARE&gt; ( &lt;PROCEDURE&gt; &lt;AS&gt; &lt;STRING&gt; | <A HREF="#prod61">qualifiedIdentifier</A> &lt;AS&gt; &lt;STRING&gt; )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>GetCursorStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod19">GetCursorStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;GET&gt; ( &lt;SCROLL&gt; <A HREF="#prod62">scrollType</A> )? ( &lt;WITH&gt; <A HREF="#prod63">holdType</A> )? &lt;CURSOR&gt; <A HREF="#prod61">qualifiedIdentifier</A> &lt;AS&gt; &lt;STRING&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>scrollType</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod62">scrollType</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;INSENSITIVE&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;SENSITIVE&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>holdType</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod63">holdType</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;HOLD&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;NOHOLD&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>AbsoluteStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod3">AbsoluteStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;ABSOLUTE&gt; <A HREF="#prod64">intLiteral</A> <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>RelativeStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod32">RelativeStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;RELATIVE&gt; <A HREF="#prod64">intLiteral</A> <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>BeforeFirstStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod8">BeforeFirstStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;BEFORE&gt; &lt;FIRST&gt; <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>FirstStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod17">FirstStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;FIRST&gt; <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>NextStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod26">NextStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;NEXT&gt; <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>AfterLastStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod4">AfterLastStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;AFTER&gt; &lt;LAST&gt; <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>LastStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod23">LastStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LAST&gt; <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>PreviousStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod29">PreviousStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;PREVIOUS&gt; <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>GetCurrentRowNumber</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod20">GetCurrentRowNumber</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;GETCURRENTROWNUMBER&gt; <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>CloseStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod9">CloseStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;CLOSE&gt; <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * Two forms of execute: immediate, with a string
+ * and prepared, with the id of a prepared statement.
+ * We expect the latter form will
+ * eventually support a USING clause to supply
+ * parameter values (that will be constants).
+ * No parameters yet, however.
+ * <p>
+ * Syntax:
+ *   EXECUTE statementSource [ USING statementSource] ;
+ *
+ *	 statementSource is an identifier of a previously prepared statement
+ *	 or a string containing SQL-J text.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>ExecuteStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod16">ExecuteStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;EXECUTE&gt; ( &lt;STATEMENT&gt; &lt;STRING&gt; | &lt;PROCEDURE&gt; &lt;STRING&gt; | ( <A HREF="#prod61">qualifiedIdentifier</A> | &lt;STRING&gt; ) ( &lt;USING&gt; ( <A HREF="#prod61">qualifiedIdentifier</A> | &lt;STRING&gt; ) )? )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * Async: like execute immediate, without using,
+ * but runs the statement in a separate thread, against
+ * the current connection.
+ * <p>
+ * Syntax:
+ *   ASYNC asyncName statementSource 
+ *
+ *	 statementSource is a string containing SQL-J text.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>AsyncStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod6">AsyncStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;ASYNC&gt; <A HREF="#prod61">qualifiedIdentifier</A> &lt;STRING&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * Wait for: the second half of Async, waits for completion
+ * if needed and then supplies the result.  Only execute is done,
+ * not row fetching.
+ * <p>
+ * Syntax:
+ *   WAIT FOR asyncName 
+ *
+ *	 asyncName is a name used in an ASYNC statement previously
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>WaitForStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod37">WaitForStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;WAIT&gt; &lt;FOR&gt; <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * RemoveStatement is REMOVE identifier. It identifies
+ * a previously prepared statement.  We would prefer a DROP
+ * syntax, but SQL-J is using that word and I want to point out
+ * that special processing will be needed to give that parser
+ * this parser's input for unrecognized text.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>RemoveStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod33">RemoveStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;REMOVE&gt; <A HREF="#prod61">qualifiedIdentifier</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>RunStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod34">RunStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;RUN&gt; ( &lt;RESOURCE&gt; )? &lt;STRING&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * Autocommit lets you control this aspect of the connection.
+ * REMIND: should have a general way to set all connection attributes,
+ * this is a shortcut for immediate needs.
+ * <p>
+ * Syntax:
+ *   AUTOCOMMIT [ ON | OFF ] ;
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>AutocommitStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod5">AutocommitStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;AUTOCOMMIT&gt; ( &lt;ON&gt; | &lt;OFF&gt; )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * By default, holdability is set to true for Connection objects. This syntax NOHOLDFORCONNECTION lets you set it to close cursors at commit.
+ * Syntax:
+ *   NOHOLDFORCONNECTION ;
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>NoHoldForConnectionStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod27">NoHoldForConnectionStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;NOHOLDFORCONNECTION&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * By default, holdability is set to true for Connection objects. This syntax HOLDFORCONNECTION lets you set it to the default.
+ * Syntax:
+ *   HOLDFORCONNECTION ;
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>HoldForConnectionStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod22">HoldForConnectionStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;HOLDFORCONNECTION&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * Localizeddisplay controls locale sensitive data representayion
+ * <p>
+ * Syntax:
+ *   LOCALIZEDDISPLAY [ ON | OFF ] ;
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>LocalizedDisplay</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod24">LocalizedDisplay</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LOCALIZEDDISPLAY&gt; ( &lt;ON&gt; | &lt;OFF&gt; )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * ReadOnly lets you control this aspect of the connection.
+ * REMIND: should have a general way to set all connection attributes,
+ * this is a shortcut for immediate needs.
+ * <p>
+ * Syntax:
+ *   READONLY [ ON | OFF ] ;
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>ReadOnlyStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod31">ReadOnlyStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;READONLY&gt; ( &lt;ON&gt; | &lt;OFF&gt; )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * Elapsedtime on causes ij to dump out the elapsed time it takes
+ * to run a user statement at the end of that statement.
+ * <p>
+ * Syntax:
+ *   ELAPSEDTIME [ ON | OFF ] ;
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>ElapsedTimeStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod15">ElapsedTimeStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;ELAPSEDTIME&gt; ( &lt;ON&gt; | &lt;OFF&gt; )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * MaximumDisplayWidth EXACT_NUMERIC changes the maximum display width for
+ * java.lang.String to the specified EXACT_NUMERIC.
+ * This is only used by the console view.
+ * <p>
+ * Syntax:
+ *   MAXIMUMDISPLAYWIDTH INTEGER ;
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>MaximumDisplayWidthStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod25">MaximumDisplayWidthStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;MAXIMUMDISPLAYWIDTH&gt; <A HREF="#prod65">intValue</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>intValue</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod65">intValue</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;INTEGER&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * Bang lets you issue a system command using System.exec.
+ * <p>
+ * Syntax:
+ *   ! 'command to issue' ;
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>Bang</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod7">Bang</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;BANG&gt; &lt;STRING&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>StringList</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod66">StringList</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod67">StringItem</A> ( <A HREF="#prod67">StringItem</A> )*</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>StringItem</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod67">StringItem</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;STRING&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+	Haven't included: ASYNC, !, EXPECT
+	Don't include: XA_*
+ **/</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>HelpStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod21">HelpStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;HELP&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>identifier</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod54">identifier</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;IDENTIFIER&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+	A qualified identifier is localName [ <AT> sessionName ]
+*/</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>qualifiedIdentifier</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod61">qualifiedIdentifier</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod54">identifier</A> ( &lt;AT&gt; <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+    A case/connection respectful identifier.
+
+    Like an ordinary identifier(), but require a connection in order
+    to extract the case policy from database meta data.
+*/</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>caIdentifier</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod58">caIdentifier</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod68">keyword</A> | &lt;IDENTIFIER&gt; )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>intLiteral</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod64">intLiteral</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod69">sign</A> )? &lt;INTEGER&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>staticMethodName</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod59">staticMethodName</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod70">methodLeg</A> ( &lt;PERIOD&gt; <A HREF="#prod70">methodLeg</A> )+</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>methodLeg</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod70">methodLeg</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;IDENTIFIER&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>staticMethodArgs</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod60">staticMethodArgs</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LEFT_PAREN&gt; ( <A HREF="#prod71">oneStaticArg</A> ( &lt;COMMA&gt; <A HREF="#prod71">oneStaticArg</A> )* )? &lt;RIGHT_PAREN&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>oneStaticArg</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod71">oneStaticArg</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;STRING&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/*
+ * <A NAME="sign">sign</A>
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>sign</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod69">sign</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;PLUS_SIGN&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;MINUS_SIGN&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+	Undocumented commands to help XA testing.
+
+	This is the grammer for the XA commands
+
+	&lt;XA_DATASOURCE&gt; 'dbname' ( &lt;CREATE&gt; | shutdown ) 
+		 - get a XADataSource whose database name is dbname and make that
+		XADataSource the current XADataSource
+
+	&lt;XA_CONNECT&gt; 	[ &lt;USER&gt; 'user' ]
+			[ &lt;PASSWORD&gt; 'password' ]
+			[ &lt;AS&gt; xaconnid ] 
+		- make an XAConnection using the current XADataSource and make
+		that XAConnection the current XAConnection.  If xaconnid is 
+		given, then associate xaconnid with the XAConnection.  
+		(xaconnid not implemeneted)
+
+
+	&lt;XA_COMMIT&gt;  ( &lt;XA_1PHASE&gt; | &lt;XA_2PHASE&gt; ) xid
+		- commit a global transaction xid
+
+
+	&lt;XA_DISCONNECT&gt; [ xaconnid = identifier() ] 
+		- disconnect an XAConnection.  If xaconnid is given, then
+		disconnect the XAConnection with the given xaconnid. 
+		(xaconnid not implemeneted)
+
+
+	&lt;XA_END&gt; ( &lt;XA_SUSPEND&gt; | &lt;XA_SUCCESS&gt; | &lt;XA_FAIL&gt; ) xid
+		- dissociate a transaction from the current XAConnection or end
+		an already suspened one 
+
+	&lt;XA_FORGET&gt; xid		- forget about a global transaction
+
+	&lt;XA_GETCONNECTION&gt;  [ &lt;AS&gt; connid ] 
+		- get a Connection object from the current XAConnection.
+		If connid is given, then associate connid with the connection.
+		(connid not implemented)
+
+	&lt;XA_PREPARE&gt; xid	- prepare a global transaction
+
+	&lt;XA_RECOVER&gt; ( &lt;XA_NOFLAGS&gt; | &lt;XA_STARTRSCAN&gt; | &lt;XA_ENDRSCAN&gt; )
+	 	- return the list of in-doubt transactions
+
+	&lt;XA_ROLLBACK&gt; xid	- rollback a global transaction
+
+	&lt;XA_START&gt; ( &lt;XA_NOFLAGS&gt; | &lt;XA_JOIN&gt; | &lt;XA_RESUME&gt; ) xid
+		- associate a transaction or start a new global
+		transaction with the current XAConnection.
+
+	The following is for testing other JDBC2.0 ext interface, DataSource
+	and ConnectionPoolDataSource.  Strictly speaking, these are not xa, but
+	their functionality will be lumped into xaHelper because these are here
+	only for testing purposes.
+
+	&lt;DATASOURCE&gt; 'dbname'	[ &lt;PROTOCOL&gt; 'protocol' ]
+				[ &lt;USER&gt; 'user' ]
+				[ &lt;PASSWORD&gt; 'password' ]
+				[ &lt;AS&gt; n=identifier() ]
+		- get a data source whose database name is dbname and make that
+		DataSource the current DataSource.  If &lt;PROTOCOL&gt; is specified,
+		the DataSource may be remote.   Get a connection from that
+		dataSource and use the user/password if specified.
+
+	&lt;CP_DATASOURCE&gt; 'dbname' [ &lt;PROTOCOL&gt; 'protocol' ]
+		- get a connection pool data source whose database name is
+		dbname and make that DataSource the current CPDataSource.  
+		If &lt;PROTOCOL&gt; is specified, the DataSource may be
+		remote.
+
+	&lt;CP_CONNECT&gt;	[ &lt;USER&gt; 'user' ]
+			[ &lt;PASSWORD&gt; 'password' ]
+			[ &lt;AS&gt; cpconnid ]
+		- make a PooledConnection using the current CPDataSource and
+		make that PooledConnection the current PooledConnection.
+		If cpconnid is given, then associate cpconnid with the
+		PooledConnection. (cpconnid not implemented).
+
+	&lt;CP_GETCONNECTION&gt; [ &lt;AS&gt; connid ]
+		- get a Connection object from the current PooledConnection.
+		If connid is given, the associate connid with the connection.
+		(connid not implemented)
+
+	&lt;CP_DISCONNECT&gt; [  cpconnid = identifier() ] 
+		- disconnect a PooledConnection.  If cpconnid is given, then
+		disconnect the PooledConnection with the given cpconnid. 
+		(cpconnid not implemented)
+
+*/
+
+
+/**
+ * XA_DataSourceStatement is XA_DataSource 'dbname' ( create | shutdown )
+ * We new'ed an instance of XADataSource as the current DataSource and set its
+ * database name to dbname.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_DataSourceStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod38">XA_DataSourceStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_DATASOURCE&gt; &lt;STRING&gt; ( ( &lt;SHUTDOWN&gt; | <A HREF="#prod54">identifier</A> ) )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * XA_ConnectStatement is XA_CONNECT (&lt;AS&gt; connid)
+ * make a XAConnection using the currentXADataSource and make that XAConnection
+ * the current XAConnection.  If connid is given, then associate connid with
+ * the XAConnection.  This connid is not th xid.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_ConnectStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod39">XA_ConnectStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_CONNECT&gt; ( &lt;USER&gt; &lt;STRING&gt; )? ( &lt;PASSWORD&gt; &lt;STRING&gt; )? ( &lt;AS&gt; <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * XA_DisconnectStatement is XA_DISCONNECT [xaconnid = identifier()]
+ * disconnect the current XAConnection 
+ * If xaconnid is given, then disconnect XAConnection with xaconnid (xaconnid
+ *	not implemented).
+ * 
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_DisconnectStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod41">XA_DisconnectStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_DISCONNECT&gt; ( <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * XA_CommitStatement is XA_COMMIT [ XA_1PHASE | XA_2PHASE ] xid
+ * commits a global transaction xid
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_CommitStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod40">XA_CommitStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_COMMIT&gt; ( &lt;XA_1PHASE&gt; | &lt;XA_2PHASE&gt; ) <A HREF="#prod65">intValue</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * XA_EndStatement is XA_END [ XA_SUSPEND | XA_SUCCESS | XA_FAIL] xid
+ * dissociates a transaction from the current XAConnection or end an already
+ * suspended one
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_EndStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod43">XA_EndStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_END&gt; <A HREF="#prod72">xatmflag</A> <A HREF="#prod65">intValue</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * XA_ForgetStatement is XA_FORGET xid
+ * forgets about a heuristically completed transaction
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_ForgetStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod44">XA_ForgetStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_FORGET&gt; <A HREF="#prod65">intValue</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * XA_GetConnectionStatement is XA_GETCONNECTION
+ * it gets a Connection from the currentXAConnection and uses that as the
+ * current connection 
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_GetConnectionStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod42">XA_GetConnectionStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_GETCONNECTION&gt; ( &lt;AS&gt; <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * XA_PrepareStatement is XA_PREPARE xid
+ * prepares a global transaction
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_PrepareStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod45">XA_PrepareStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_PREPARE&gt; <A HREF="#prod65">intValue</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * XA_RecoverStatement is XA_RECOVER flag
+ * displays the list of prepared transactions
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_RecoverStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod46">XA_RecoverStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_RECOVER&gt; <A HREF="#prod72">xatmflag</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * XA_RollbackStatement is XA_Rollback xid
+ * rolls back a global transaction
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_RollbackStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod47">XA_RollbackStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_ROLLBACK&gt; <A HREF="#prod65">intValue</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * XA_StartStatement is XA_START [ XA_NOFLAGS | XA_JOIN | XA_RESUME ] xid
+ * start or associates a transaction with the current XAConnection
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>XA_StartStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod48">XA_StartStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_START&gt; <A HREF="#prod72">xatmflag</A> <A HREF="#prod65">intValue</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>xatmflag</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod72">xatmflag</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_ENDRSCAN&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_FAIL&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_JOIN&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_NOFLAGS&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_RESUME&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_STARTRSCAN&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_SUCCESS&gt;</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;XA_SUSPEND&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * DataSourceStatement is 
+ *	DataSource 'dbname' 
+ *		[ &lt;PROTCOL&gt; 'protocol']
+ *		[ &lt;USER&gt; 'user' ]
+ *		[ &lt;PASSWORD&gt; 'password' ]
+ *		[ &lt;AS&gt; n=identifier() ]
+ *
+ * We new'ed an instance of DataSource as the current DataSource and set its
+ * database name to dbname.  Also get a connection
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>DataSourceStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod49">DataSourceStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DATASOURCE&gt; &lt;STRING&gt; ( &lt;PROTOCOL&gt; &lt;STRING&gt; )? ( &lt;USER&gt; &lt;STRING&gt; )? ( &lt;PASSWORD&gt; &lt;STRING&gt; )? ( &lt;AS&gt; <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * CP_DataSourceStatement is
+ *	CP_DataSource 'dbname' [ &lt;PROTOCOL&gt; 'protocol' ]
+ *		- get a connection pool data source whose database name is
+ *		dbname and make that DataSource the current CPDataSource.  
+ *		If &lt;PROTOCOL&gt; is specified, the DataSource may be
+ *		remote.
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>CP_DataSourceStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod50">CP_DataSourceStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;CP_DATASOURCE&gt; &lt;STRING&gt; ( &lt;PROTOCOL&gt; &lt;STRING&gt; )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * CP_ConnectStatement is
+ *	&lt;CP_CONNECT&gt;	[ &lt;USER&gt; 'user' ]
+ *			[ &lt;PASSWORD&gt; 'password' ]
+ *			[ &lt;AS&gt; cpconnid ]
+ * make a PooledConnection using the current CPDataSource and
+ * make that PooledConnection the current PooledConnection.
+ * If cpconnid is given, then associate cpconnid with the
+ * PooledConnection. (cpconnid not implemented).
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>CP_ConnectStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod51">CP_ConnectStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;CP_CONNECT&gt; ( &lt;USER&gt; &lt;STRING&gt; )? ( &lt;PASSWORD&gt; &lt;STRING&gt; )? ( &lt;AS&gt; <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * CP_GetConnectionStatement is
+ *	&lt;CP_GETCONNECTION&gt; [ &lt;AS&gt; connid ]
+ * get a Connection object from the current PooledConnection.
+ * If connid is given, the associate connid with the connection.
+ * (connid not implemented)
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>CP_GetConnectionStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod52">CP_GetConnectionStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;CP_GETCONNECTION&gt; ( &lt;AS&gt; <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+/**
+ * CP_DisconnectStatement is
+ *	&lt;CP_DISCONNECT&gt; [ cpconnid = identifier() ]
+ * disconnect a PooledConnection.  If cpconnid is given, then
+ * disconnect the PooledConnection with the given cpconnid. 
+ * (cpconnid not implemented)
+ */</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>CP_DisconnectStatement</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod53">CP_DisconnectStatement</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;CP_DISCONNECT&gt; ( <A HREF="#prod54">identifier</A> )?</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>attributeList</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod57">attributeList</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod73">property</A> ( &lt;COMMA&gt; <A HREF="#prod73">property</A> )* )</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>property</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod73">property</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod74">caseSensitiveIdentifierOrKeyword</A> &lt;EQUALS_OPERATOR&gt; <A HREF="#prod74">caseSensitiveIdentifierOrKeyword</A></TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>caseSensitiveIdentifierOrKeyword</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod74">caseSensitiveIdentifierOrKeyword</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod68">keyword</A></TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;IDENTIFIER&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>caseSensitiveIdentifier</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod75">caseSensitiveIdentifier</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;IDENTIFIER&gt;</TD>
+</TR>
+</TABLE>
+<HR>
+<PRE>
+</PRE>
+
+<TABLE ALIGN=CENTER>
+<CAPTION><STRONG>keyword</STRONG></CAPTION>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod68">keyword</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;ABSOLUTE&gt; | &lt;AFTER&gt; | &lt;ALIASES&gt; | &lt;ALL&gt; | &lt;AS&gt; | &lt;ASYNC&gt; | &lt;ATTRIBUTES&gt; | &lt;AUTOCOMMIT&gt; | &lt;BANG&gt; | &lt;BEFORE&gt; | &lt;CLOSE&gt; | &lt;COMMIT&gt; | &lt;CONNECT&gt; | &lt;CONNECTION&gt; | &lt;CONNECTIONS&gt; | &lt;CURRENT&gt; | &lt;CURSOR&gt; | &lt;DESCRIBE&gt; | &lt;DISCONNECT&gt; | &lt;DRIVER&gt; | &lt;ELAPSEDTIME&gt; | &lt;END&gt; | &lt;EXECUTE&gt; | &lt;EXIT&gt; | &lt;FAIL&gt; | &lt;FIRST&gt; | &lt;FOR&gt; | &lt;FROM&gt; | &lt;GET&gt; | &lt;GETCURRENTROWNUMBER&gt; | &lt;HOLD&gt; | &lt;HELP&gt; | &lt;IN&gt; | &lt;INDEXES&gt; | &lt;INSENSITIVE&gt; | &lt;INTO&gt; | &lt;LAST&gt; | &lt;LOCALIZEDDISPLAY&gt; | &lt;MAXIMUMDISPLAYWIDTH&gt; | &lt;NAME&gt; | &lt;NEXT&gt; | &lt;NOHOLD&gt; | &lt;NOHOLDFORCONNECTION&gt; | &lt;OFF&gt; | &lt;ON&gt; | &lt;PASSWORD&gt; | &lt;PERIOD&gt; | &lt;PREPARE&gt; | &lt;PREVIOUS&gt; | &lt;PROCEDURE&gt; | &lt;PROCEDURES&gt; | &lt;PROPERTIES&gt; | &lt;PROTOCOL&gt; | &lt;QUIT&gt; | &lt;READONLY&gt; | &lt;RELATIVE&gt; | &lt;REMOVE&gt; | &lt;RESOURCE&gt; | &lt;ROLLBACK&gt; | &lt;RUN&gt; | &lt;TO&gt; | &lt;SCHEMAS&gt; | &lt;SCROLL&gt; | &lt;SENSITIVE&gt; | &lt;SET&gt; | &lt;SHOW&gt; | &lt;SHUTDOWN&gt; | &lt;STATEMENT&gt; | &lt;SYNONYMS&gt; | &lt;TABLES&gt; | &lt;USER&gt; | &lt;USING&gt; | &lt;VIEWS&gt; | &lt;WAIT&gt; | &lt;WITH&gt; | &lt;XA_1PHASE&gt; | &lt;XA_2PHASE&gt; | &lt;XA_DATASOURCE&gt; | &lt;XA_CONNECT&gt; | &lt;XA_COMMIT&gt; | &lt;XA_DISCONNECT&gt; | &lt;XA_END&gt; | &lt;XA_ENDRSCAN&gt; | &lt;XA_FAIL&gt; | &lt;XA_FORGET&gt; | &lt;XA_GETCONNECTION&gt; | &lt;XA_JOIN&gt; | &lt;XA_NOFLAGS&gt; | &lt;XA_PREPARE&gt; | &lt;XA_RECOVER&gt; | &lt;XA_RESUME&gt; | &lt;XA_ROLLBACK&gt; | &lt;XA_START&gt; | &lt;XA_STARTRSCAN&gt; | &lt;XA_SUCCESS&gt; | &lt;XA_SUSPEND&gt; | &lt;DATASOURCE&gt; | &lt;CP_DATASOURCE&gt; | &lt;CP_CONNECT&gt; | &lt;CP_GETCONNECTION&gt; | &lt;CP_DISCONNECT&gt; | &lt;WORK&gt; )</TD>
+</TR>
+</TABLE>
+<HR>
+</BODY>
+</HTML>
